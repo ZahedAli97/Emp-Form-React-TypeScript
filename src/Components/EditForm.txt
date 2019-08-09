@@ -1,0 +1,75 @@
+//convert type to tsx
+
+
+// import React from "react";
+
+// export default function EditForm(props: {}) {
+//   const handleSubmit = () => {
+//     return;
+//   };
+//   const handleChange = () => {
+//     return;
+//   };
+//   const handleImage = () => {
+//     return;
+//   };
+//   return (
+//     <>
+//       <h1>Edit Form</h1>
+//       <form onSubmit={handleSubmit}>
+//         <input type="text" hidden />
+//         <label>Name: </label>
+//         <input type="text" name="full_name" onChange={handleChange} required />
+//         <br />
+//         <label>Email: </label>
+//         <input type="email" name="email" onChange={handleChange} required />
+//         <br />
+//         <label>Password: </label>
+//         <input
+//           type="password"
+//           name="password"
+//           onChange={handleChange}
+//           required
+//         />
+//         <br />
+//         <label>Mobile: </label>
+//         <input type="number" name="mobile" onChange={handleChange} required />
+//         <br />
+//         <label>Date Of Birth: </label>
+//         <input
+//           type="date"
+//           name="dateOfBirth"
+//           onChange={handleChange}
+//           required
+//         />
+//         <br />
+//         <label>Gender: </label>
+//         <input
+//           type="radio"
+//           name="gender"
+//           value="Male"
+//           onChange={handleChange}
+//         />
+//         Male
+//         <input
+//           type="radio"
+//           name="gender"
+//           value="Female"
+//           onChange={handleChange}
+//         />
+//         Female
+//         <input
+//           type="radio"
+//           name="gender"
+//           value="Other"
+//           onChange={handleChange}
+//         />
+//         Other
+//         <br />
+//         <input type="file" name="profilePic" onChange={handleImage} required />
+//         <br />
+//         <input type="submit" value="SUBMIT" />
+//       </form>
+//     </>
+//   );
+// }

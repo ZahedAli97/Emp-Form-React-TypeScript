@@ -1,0 +1,567 @@
+//////////////Login.tsx///////////////////////
+import React from "react";
+import Form, { IChangeEvent } from "react-jsonschema-form";
+import { LoginFormInterface } from "../../Types";
+import Axios from "axios";
+import { HandleLogin } from "../HandleLogin";
+import { schema, uiSchema } from "./LoginSchema";
+import { Link } from "react-router-dom";
+import { AppState } from "../Store";
+import {
+  login_user,
+  login_user_success,
+  login_user_failure
+} from "../ActionCreators/ActionCreators";
+import { connect } from "react-redux";
+import { Dispatch, bindActionCreators } from "redux";
+
+interface stateProps {}
+
+interface dispatchProps {
+  login_user: typeof login_user;
+  login_user_success: typeof login_user_success;
+  login_user_failure: typeof login_user_failure;
+}
+
+type AppProps = stateProps & dispatchProps;
+
+// export default function Login(props: { setLogin: Function }) {
+function Login(props: AppProps) {
+  const handleSubmit = (e: IChangeEvent<unknown>) => {
+    const formData: LoginFormInterface = e.formData as LoginFormInterface;
+    props.login_user(formData);
+    // Axios.post("http://localhost:8080/employes/getemployelogin", formData)
+    //   .then(res => {
+    //     if (res.data.id !== 0) {
+    //       console.log("Responde = ", res.data);
+    //       localStorage.setItem("LoginTS", "true");
+    //       localStorage.setItem("LoginIdTS", res.data.id);
+    //       HandleLogin(res.data);
+    //       // props.setLogin(true);
+    //     } else {
+    //       alert("Email does not Exist.");
+    //     }
+    //   })
+    //   .catch(err => alert(err));
+  };
+  return (
+    <>
+      <h1>Login Schema</h1>
+      <Form schema={schema} uiSchema={uiSchema} onSubmit={handleSubmit} />
+      <hr />
+      <p>
+        New user? - <Link to="/signup">Register Here</Link>
+      </p>
+    </>
+  );
+}
+
+const mapStateToProps = (state: AppState) => {
+  return {};
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<any>): dispatchProps => ({
+  ...bindActionCreators(
+    {
+      login_user,
+      login_user_success,
+      login_user_failure
+    },
+    dispatch
+  )
+});
+
+const connectedComponent = connect(
+  mapStateToProps,
+  mapDispatchToProps
+);
+
+export default connectedComponent(Login);
+
+
+
+
+//////////////////////Home.tsx/////////////////////////
+import React, { useState } from "react";
+import EmployeeForm from "./EmployeeForm";
+import LoginForm from "./LoginForm";
+import Profile from "./Profile";
+import { Route, Switch } from "react-router-dom";
+import { StaticContext } from "react-router";
+import Login from "./LoginForm/Login";
+import Signup from "./SignupForm/Signup";
+import EditForm from "./EditForm/EditForm";
+import { AppState } from "./Store";
+import { connect } from "react-redux";
+// import EditForm from "./EditForm";
+
+function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState<Boolean>(
+    "true" === localStorage.getItem("LoginTS") || false
+  );
+  return (
+    <>
+      <Switch>
+        {!("true" === localStorage.getItem("LoginTS")) && (
+          <>
+            {/* <EmployeeForm /> */}
+            {/* <LoginForm setLogin={setIsLoggedIn} /> */}
+            {/* <Route
+              path="/"
+              exact
+              render={() => <LoginForm setLogin={setIsLoggedIn} />}
+            /> */}
+            {/* <Route path="/Signup" exact component={EmployeeForm} /> */}
+            <Route path="/signup" exact component={Signup} />
+            {/* <Route
+              path="/"
+              exact
+              render={() => <Login setLogin={setIsLoggedIn} />}
+            /> */}
+            <Route path="/" exact render={() => <Login />} />
+          </>
+        )}
+        {"true" === localStorage.getItem("LoginTS") && (
+          <>
+            <Route
+              path="/"
+              exact
+              render={() => <Profile setLogin={setIsLoggedIn} />}
+            />
+            <Route path="/editform" exact component={EditForm} />
+          </>
+        )}{" "}
+      </Switch>
+    </>
+  );
+}
+
+const mapStateToProps = (state: AppState): { isLoggedIn: boolean } => {
+  return {
+    isLoggedIn: state.isLoggedIn
+  };
+};
+
+export default connect(mapStateToProps)(Home);
+
+
+
+
+/////////////////////Profile.tsx//////////////////////////
+import React, { useEffect, SetStateAction } from "react";
+import { formData } from "../Types";
+import { Link } from "react-router-dom";
+import Axios from "axios";
+import { AppState } from "./Store";
+import { Dispatch, bindActionCreators, AnyAction } from "redux";
+import { get_data, change_input } from "./ActionCreators/ActionCreators";
+import { connect } from "react-redux";
+
+interface ownProps {
+  setLogin: Function;
+}
+interface mapStateToProps extends formData {}
+interface mapDispatchToProps {
+  get_data: typeof get_data;
+  change_input: typeof change_input;
+}
+
+type AppProps = mapStateToProps & mapDispatchToProps & ownProps;
+
+function Profile(props: AppProps) {
+  useEffect(() => {
+    props.get_data();
+  });
+  // const data: string | null = localStorage.getItem("userData") || "{}";
+  // //   If you are confident that local storage will never return null then
+  // //   const data: string | null = localStorage.getItem("userData")!;
+  // const userData: formData = JSON.parse(data) as formData;
+  // let image: string | ArrayBuffer | undefined = userData.image || undefined;
+
+  const handleLogout = () => {
+    localStorage.setItem("LoginTS", "false");
+    props.setLogin(false);
+    props.change_input(
+      "isLoggedIn",
+      "true" === localStorage.getItem("LoginTS")
+    );
+  };
+
+  return (
+    <>
+      <h1>Profile</h1> <hr />
+      <input type="button" value="Logout" onClick={handleLogout} />
+      <Link to="/editform">
+        <input type="button" value="Edit Profile" />
+      </Link>
+      <br />
+      <label>Profile Pic : </label>
+      <img
+        src={(props.image && props.image.toString()) || undefined}
+        alt="Profile Picture"
+      />
+      <br />
+      <label>Name : </label>
+      <p>{props.name}</p>
+      <label>Email : </label>
+      <p>{props.email}</p>
+      <br />
+      <label>Mobile : </label>
+      <p>{props.mobile}</p>
+      <label>Date Of Birth : </label>
+      <p>{props.birthday}</p>
+      <br /> <label>Gender : </label>
+      <p>{props.gender}</p>
+      <label>Skills : </label>
+      <p>{props.skills}</p>
+    </>
+  );
+}
+
+const mapStateToProps = (state: AppState) => {
+  return {
+    id: state.id,
+    name: state.name,
+    email: state.email,
+    password: state.password,
+    mobile: state.mobile,
+    birthday: state.birthday,
+    gender: state.gender,
+    skills: state.skills,
+    image: state.image
+  };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => ({
+  ...bindActionCreators({ get_data, change_input }, dispatch)
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Profile);
+
+
+
+
+
+//////////////Signup.tsx/////////////////////////////////
+import React from "react";
+import Form, { IChangeEvent } from "react-jsonschema-form";
+import { schema, uiSchema } from "./SignupSchema";
+import { formData } from "../../Types";
+import Axios from "axios";
+import { RouteComponentProps } from "react-router";
+import { AppState } from "../Store";
+import { Dispatch, bindActionCreators } from "redux";
+import { signup_user } from "../ActionCreators/ActionCreators";
+import { connect } from "react-redux";
+
+interface props extends RouteComponentProps {}
+interface mapStateToProps {}
+interface mapDispatchToProps {
+  signup_user: typeof signup_user;
+}
+
+type AppProps = props & mapStateToProps & mapDispatchToProps;
+
+function Signup(props: AppProps) {
+  const handleSubmit = (e: IChangeEvent<unknown>) => {
+    const id = Math.floor(Math.random() * 1000);
+    const formData: formData = e.formData as formData;
+    formData.id = id;
+    let skills = formData.skills;
+    let sendSkills: string = "";
+    for (let skill of skills) {
+      sendSkills += `${skill}, `;
+    }
+    // console.log(formData);
+    formData.skills = sendSkills;
+    Axios.post("http://localhost:8080/employes/addemploye", formData)
+      .then(res => {
+        // console.log(res.data);
+        props.history.push("/");
+      })
+      .catch(err => alert(err));
+  };
+  return (
+    <>
+      <h1>Signup Schema</h1>
+      <Form schema={schema} uiSchema={uiSchema} onSubmit={handleSubmit} />
+    </>
+  );
+}
+
+const mapStateToProps = (state: AppState) => {
+  return {};
+};
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  ...bindActionCreators(
+    {
+      signup_user
+    },
+    dispatch
+  )
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Signup);
+
+
+
+
+
+///////////////////////EditForm.txt/////////////////////////
+import React from "react";
+import Form, { IChangeEvent } from "react-jsonschema-form";
+import { schema, uiSchema } from "../SignupForm/SignupSchema";
+import { formData } from "../../Types";
+import Axios from "axios";
+import { RouteComponentProps } from "react-router";
+import { AppState } from "../Store";
+import { Dispatch, bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import { update_user_data } from "../ActionCreators/ActionCreators";
+
+interface props extends RouteComponentProps {}
+
+interface mapStateToProps extends formData {}
+
+interface mapDispatchToProps {
+  update_user_data: typeof update_user_data;
+}
+
+type AppProps = props & mapStateToProps & mapDispatchToProps;
+
+function EditForm(props: AppProps) {
+  const storage: string | undefined = localStorage.getItem("userData") || `{}`;
+  const myFormData: formData = JSON.parse(storage) as formData;
+  myFormData.mobile = parseInt(myFormData.mobile.toString());
+  let mySkills: string | string[] = myFormData.skills.toString().split(", ");
+  mySkills.pop();
+  console.log(myFormData.skills);
+  myFormData.skills = mySkills;
+  console.log(myFormData.skills);
+
+  const handleSubmit = (e: IChangeEvent<unknown>) => {
+    const formData: formData = e.formData as formData;
+    let skills = formData.skills;
+    let sendSkills: string = "";
+    for (let skill of skills) {
+      sendSkills += `${skill}, `;
+    }
+    console.log(formData);
+    formData.skills = sendSkills;
+    // localStorage.setItem("userData", JSON.stringify(formData));
+    Axios.put("http://localhost:8080/employes/updemploye", formData)
+      .then(res => {
+        console.log(res.data);
+        props.history.push("/");
+      })
+      .catch(err => alert(err));
+  };
+
+  return (
+    <>
+      <h1>EditForm Schema</h1>
+      <Form
+        schema={schema}
+        uiSchema={uiSchema}
+        formData={myFormData}
+        onSubmit={handleSubmit}
+      />
+    </>
+  );
+}
+
+const mapStateToProps = (state: AppState): mapStateToProps => {
+  return {
+    id: state.id,
+    name: state.name,
+    email: state.email,
+    password: state.password,
+    mobile: state.mobile,
+    birthday: state.birthday,
+    gender: state.gender,
+    skills: state.skills,
+    image: state.image
+  };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): mapDispatchToProps => ({
+  ...bindActionCreators({ update_user_data }, dispatch)
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(EditForm);
+
+
+
+
+
+
+//////////////////ChooseLanguage.tsx///////////////////////
+import React from "react";
+import { AppState } from "./Store";
+import { change_input } from "./ActionCreators/ActionCreators";
+import { Dispatch, bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import Dropdown from "react-bootstrap/Dropdown";
+
+interface mapStateToProps {}
+interface mapDispatchToProps {
+  change_input: typeof change_input;
+}
+
+type AppProps = mapStateToProps & mapDispatchToProps;
+
+function ChooseLanguage(props: AppProps) {
+  const handleClick = (lang: string) => {
+    console.log(lang);
+    localStorage.setItem("LangTS", lang);
+    props.change_input("lang", lang);
+  };
+  return (
+    <div>
+      <Dropdown>
+        <Dropdown.Toggle
+          variant="info"
+          className="btn btn-outline-info text-info"
+          id="dropdown-basic"
+          style={{
+            width: "10rem",
+            background: "rgba(255, 255, 255, 0.4)"
+          }}
+        >
+          {localStorage.getItem("lang") === "en" && "English"}
+          {localStorage.getItem("lang") === "ru" && "Russian"}
+          {localStorage.getItem("lang") === "es" && "Spanish"}
+          {localStorage.getItem("lang") === "fi" && "Finnish"}
+          {localStorage.getItem("lang") === null && "English"}
+        </Dropdown.Toggle>
+        {/* <Dropdown.Menu> */}
+        <Dropdown.Menu style={{ background: "rgba(255, 255, 255, 0.4)" }}>
+          <Dropdown.Item
+            href="#"
+            className="btn btn-info text-center"
+            style={{
+              backgroundColor: "#54b9f85f"
+            }}
+          >
+            <div
+              className="btn btn-outline-light text-white text-center"
+              style={{ width: "7rem" }}
+              onClick={() => {
+                handleClick("en");
+              }}
+            >
+              English
+            </div>
+          </Dropdown.Item>
+          <Dropdown.Item
+            href="#"
+            className="btn btn-info text-center"
+            style={{
+              backgroundColor: "#54b9f85f"
+            }}
+          >
+            <div
+              className="btn btn-outline-light text-white text-center"
+              style={{ width: "7rem" }}
+              onClick={() => {
+                handleClick("ru");
+              }}
+            >
+              Russian
+            </div>
+          </Dropdown.Item>
+          <Dropdown.Item
+            href="#"
+            className="btn btn-info text-center"
+            style={{
+              backgroundColor: "#54b9f85f"
+            }}
+          >
+            <div
+              className="btn btn-outline-light text-white text-center"
+              style={{ width: "7rem" }}
+              onClick={() => {
+                handleClick("es");
+              }}
+            >
+              Spanish
+            </div>
+          </Dropdown.Item>
+          <Dropdown.Item
+            href="#"
+            className="btn btn-info text-center"
+            style={{
+              backgroundColor: "#54b9f85f"
+            }}
+          >
+            <div
+              className="btn btn-outline-light text-white text-center"
+              style={{ width: "7rem" }}
+              onClick={() => {
+                handleClick("fi");
+              }}
+            >
+              Finnish
+            </div>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+      <div style={{ color: "red" }}>
+        <button
+          onClick={() => {
+            handleClick("en");
+          }}
+        >
+          EN
+        </button>{" "}
+        |{" "}
+        <button
+          onClick={() => {
+            handleClick("ru");
+          }}
+        >
+          RU
+        </button>{" "}
+        |{" "}
+        <button
+          onClick={() => {
+            handleClick("es");
+          }}
+        >
+          ES
+        </button>{" "}
+        |{" "}
+        <button
+          onClick={() => {
+            handleClick("fi");
+          }}
+        >
+          FI
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const mapStateToProps = (state: AppState) => {
+  return {};
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): mapDispatchToProps => ({
+  ...bindActionCreators({ change_input }, dispatch)
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ChooseLanguage);

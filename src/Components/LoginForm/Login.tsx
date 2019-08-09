@@ -85,10 +85,12 @@ function Login(props: AppProps) {
           <p>
             <FormattedMessage id="login.ask" defaultMessage="New user?" />{" "}
             <Link to="/signup">
-              <FormattedMessage
-                id="login.toRegister"
-                defaultMessage="Register Here"
-              />
+              <div className="shadow btn btn-outline-info text-white">
+                <FormattedMessage
+                  id="login.toRegister"
+                  defaultMessage="Register Here"
+                />
+              </div>
             </Link>
           </p>
         </div>
